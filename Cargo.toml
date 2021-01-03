@@ -3,6 +3,8 @@ name = "immutable_string"
 version = "0.1.0"
 authors = ["Marcos Sartori <marcos.sartori@acad.pucrs.br>"]
 edition = "2018"
+description = "Immutable Single Instance Strings for Rust"
+repository = "https://github.com/marlls1989/immutable_string/"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
