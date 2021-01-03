@@ -1,6 +1,6 @@
 [package]
 name = "immutable_string"
-version = "0.1.0"
+version = "0.1.1"
 authors = ["Marcos Sartori <marcos.sartori@acad.pucrs.br>"]
 edition = "2018"
 description = "Immutable Single Instance Strings for Rust"
