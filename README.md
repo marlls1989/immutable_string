@@ -1,4 +1,4 @@
-# immutable_string - Immutable Single Instance Strings for Rust
+# immutable_string - Immutable Shared Strings for Rust
 This crate provides a global table for immutable string implemented using Arc<str>.
 It avoids duplication of strings in memory when parsing large files with multiple instances of the same sequence of characters.
 
