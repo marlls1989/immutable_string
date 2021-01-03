@@ -1,8 +1,9 @@
-use lazy_static::*;
+use lazy_static::lazy_static;
 use std::{
-    fmt::Debug,
-    ops::Deref,
     borrow::Borrow,
+    fmt::Debug,
+    iter::{FromIterator, IntoIterator},
+    ops::Deref,
     sync::{Arc, RwLock, Weak},
 };
 use weak_table::WeakHashSet;
@@ -14,8 +15,17 @@ lazy_static! {
 #[derive(PartialEq, Eq, PartialOrd, Ord, Hash, Clone, Debug)]
 pub struct ImmutableString(Arc<str>);
 
-impl<T> From<T> for ImmutableString where
-T: ?Sized + Deref<Target=str> + Into<Arc<str>> {
+impl ImmutableString {
+    #[inline]
+    pub fn use_count(&self) -> usize {
+        Arc::strong_count(&self.0)
+    }
+}
+
+impl<T> From<T> for ImmutableString
+where
+    T: ?Sized + Deref<Target = str> + Into<Arc<str>>,
+{
     fn from(s: T) -> Self {
         // Attempt to aquire string without locking the hashmap first
         let str_map = STRING_TABLE.read().expect("Corrupted STRING_TABLE");
@@ -57,10 +67,21 @@ impl Borrow<str> for ImmutableString {
     }
 }
 
-impl ImmutableString {
-    #[inline]
-    pub fn use_count(&self) -> usize {
-        Arc::strong_count(&self.0)
+impl<'a> FromIterator<&'a char> for ImmutableString {
+    fn from_iter<I: IntoIterator<Item = &'a char>>(iter: I) -> Self {
+        let mut buffer = String::new();
+        buffer.extend(iter);
+        buffer.shrink_to_fit();
+        buffer.into()
+    }
+}
+
+impl FromIterator<char> for ImmutableString {
+    fn from_iter<I: IntoIterator<Item = char>>(iter: I) -> Self {
+        let mut buffer = String::new();
+        buffer.extend(iter);
+        buffer.shrink_to_fit();
+        buffer.into()
     }
 }
 
@@ -76,5 +97,19 @@ mod tests {
         assert_eq!(a2.use_count(), 2);
         assert_eq!(a1.as_ref(), "a");
         assert_eq!(a2.as_ref(), "a");
+    }
+
+    #[test]
+    fn iter_collect() {
+        use std::iter::repeat;
+        let a: ImmutableString = repeat('a').take(5).collect();
+        let b: ImmutableString = repeat('a').take(5).collect();
+        let c: ImmutableString = repeat('a').take(4).collect();
+        assert_eq!(a, b);
+        assert_ne!(a, c);
+        assert_ne!(b, c);
+        assert_eq!(a.use_count(), 2);
+        assert_eq!(b.use_count(), 2);
+        assert_eq!(c.use_count(), 1);
     }
 }
