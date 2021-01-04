@@ -17,7 +17,7 @@
 use lazy_static::lazy_static;
 use std::{
     borrow::Borrow,
-    fmt::Debug,
+    fmt,
     iter::{FromIterator, IntoIterator},
     ops::Deref,
     sync::{Arc, RwLock, Weak},
@@ -28,7 +28,7 @@ lazy_static! {
     static ref STRING_TABLE: RwLock<WeakHashSet<Weak<str>>> = RwLock::new(WeakHashSet::new());
 }
 
-#[derive(PartialEq, Eq, PartialOrd, Ord, Hash, Clone, Debug)]
+#[derive(PartialEq, Eq, PartialOrd, Ord, Hash, Clone)]
 pub struct ImmutableString(Arc<str>);
 
 impl ImmutableString {
@@ -47,8 +47,23 @@ impl ImmutableString {
     /// assert_eq!(a1.use_count(), 3);
     /// assert_eq!(b.use_count(), 1);
     /// ```
+    #[inline]
     pub fn use_count(&self) -> usize {
         Arc::strong_count(&self.0)
+    }
+}
+
+impl fmt::Display for ImmutableString {
+    #[inline]
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        fmt::Display::fmt(&**self, f)
+    }
+}
+
+impl fmt::Debug for ImmutableString {
+    #[inline]
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        fmt::Debug::fmt(&**self, f)
     }
 }
 
@@ -80,18 +95,21 @@ where
 impl Deref for ImmutableString {
     type Target = str;
 
+    #[inline]
     fn deref(&self) -> &Self::Target {
         &self.0
     }
 }
 
 impl AsRef<str> for ImmutableString {
+    #[inline]
     fn as_ref(&self) -> &str {
         self
     }
 }
 
 impl Borrow<str> for ImmutableString {
+    #[inline]
     fn borrow(&self) -> &str {
         self
     }
@@ -141,5 +159,11 @@ mod tests {
         assert_eq!(a.use_count(), 2);
         assert_eq!(b.use_count(), 2);
         assert_eq!(c.use_count(), 1);
+    }
+
+    #[test]
+    fn display() {
+        let a = ImmutableString::from("a");
+        assert_eq!(format!("a: {}", a), "a: a");
     }
 }

@@ -13,3 +13,9 @@ Once it has exclusive writer access, it checks again if the string is not presen
 Then, it allocates the string and store a weak copy in the hashmap.
 
 The globally shared WeakHashSet may present a performance bottleneck and in the future should be replaced by a distribuited hashmap.
+
+## Changelog
+- 0.1.0
+  - Initial Release
+- 0.1.1
+  - Include implementation for Display and Debug trait
